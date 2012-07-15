@@ -41,7 +41,7 @@ fi
 mkdir -p $VENDOR_DIR
 
 mkdir -p /app
-ln -s $VENDOR_DIR /app/vendor
+ln -sTf $VENDOR_DIR /app/vendor
 
 # install protobuf
 CACHED_PROTOBUF_TARBALL="$CACHE_DIR/protobuf.tgz"
