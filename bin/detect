@@ -1,0 +1,7 @@
+#!/bin/bash
+
+if [ -f $1/.protos ]; then
+    echo 'Protobuf + protoc'
+else
+    echo 'Protobuf'
+fi

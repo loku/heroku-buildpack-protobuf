@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+function log-step() {
+    echo "-----> $@"
+}
+
+function log() {
+    echo "$@" | sed -u 's/^/       /'
+}
+
+function die() {
+    echo " !     $@"
+    exit 1
+}
+
+BIN_DIR=$(cd $(dirname $0); pwd)
+ROOT_DIR=$(dirname $BIN_DIR)
+SUPPORT_DIR=$ROOT_DIR/support
+
+BUILD_DIR=$1
+CACHE_DIR=$2
+
+PROTOS_FILE="$BUILD_DIR/.protos"
+if [ -z "$PROTO_BUCKET" -a -f $PROTOS_FILE ]; then
+    die "must set PROTO_BUCKET from which to download .proto files"
+fi
+
+mkdir -p $CACHE_DIR
+
+if [ "${VENDOR_PROTOBUF+1}" == 1 ]; then
+    # install protobuf into slug if VENDOR_PROTOBUF is set
+    VENDOR_DIR=$BUILD_DIR/vendor
+    log-step "installing protobuf into slug's /vendor"
+else
+    # otherwise keep it in the cache dir
+    VENDOR_DIR=$CACHE_DIR/vendor
+    log-step "installing protobuf"
+fi
+mkdir -p $VENDOR_DIR
+
+# install protobuf
+CACHED_PROTOBUF_TARBALL="$CACHE_DIR/protobuf.tgz"
+if [ ! -f $CACHED_PROTOBUF_TARBALL ]; then
+    if [ -z "$PROTOBUF_TARBALL_URL" ]; then
+        PROTOBUF_TARBALL_URL=https://protobuf.s3.amazonaws.com/protobuf-2.4.1.tgz
+    fi
+
+    log "downloading protobuf from $PROTOBUF_TARBALL_URL"
+    curl $PROTOBUF_TARBALL_URL > $CACHED_PROTOBUF_TARBALL
+fi
+
+tar xzf $CACHED_PROTOBUF_TARBALL -C $VENDOR_DIR
+
+# fix any references to /tmp/protobuf build prefix to point to vendor dir
+# TODO is it OK for this prefix to be relative? seems to work for
+#   node-protobuf's needs. what about python CPP impl? others?
+find $VENDOR_DIR -type f -exec sed -i "s#/tmp/protobuf#$VENDOR_DIR#" {} \;
+
+if [ -f $PROTOS_FILE ]; then
+    log-step "downloading protos from $PROTO_BUCKET"
+
+    PROTOC_OPTS=`head -n 1 $PROTOS_FILE`
+
+    tail -n +2 $PROTOS_FILE | while read -r PROTO_FILE
+    do
+        PROTO_FILES+=($PROTO_FILE)
+        /bin/bash $SUPPORT_DIR/aws/s3 get $PROTO_BUCKET $PROTO_FILE "$CACHE_DIR/$PROTO_FILE"
+    done
+
+    log-step "compiling protos with \`protoc $PROTOC_OPTS\`"
+    $VENDOR_DIR/bin/protoc $PROTOC_OPTS ${PROTO_FILES[@]}
+fi
