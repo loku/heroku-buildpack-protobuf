@@ -63,13 +63,14 @@ if [ -f $PROTOS_FILE ]; then
     tail -n +2 $PROTOS_FILE | while read -r PROTO_FILE
     do
         PROTO_FILES+=("$PROTOS_DIR/$PROTO_FILE")
+        log "downloading $PROTO_FILE"
         /bin/bash $SUPPORT_DIR/aws/s3 get $PROTO_BUCKET $PROTO_FILE "$PROTOS_DIR/$PROTO_FILE"
     done
 
     # get protoc options from first line of .protos
     PROTOC_OPTS=`head -n 1 $PROTOS_FILE`
 
-    log-step "compiling protos with \`protoc $PROTOC_OPTS\`"
+    log-step "compiling protos with \`protoc $PROTOC_OPTS ${PROTO_FILES[@]}\`"
     # run inside BUILD_DIR so output paths can be relative
     ( cd $BUILD_DIR ;
         $VENDOR_DIR/bin/protoc -I $PROTOS_DIR $PROTOC_OPTS ${PROTO_FILES[@]} )
