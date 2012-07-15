@@ -62,6 +62,7 @@ if [ -f $PROTOS_FILE ]; then
     log-step "downloading protos from $PROTO_BUCKET"
 
     PROTOS_DIR=`mktemp -d`
+    declare -a PROTO_FILES
     tail -n +2 $PROTOS_FILE | while read -r PROTO_FILE
     do
         PROTO_FILES+=("$PROTOS_DIR/$PROTO_FILE")
