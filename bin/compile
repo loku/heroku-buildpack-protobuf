@@ -40,6 +40,9 @@ else
 fi
 mkdir -p $VENDOR_DIR
 
+mkdir -p /app
+ln -s $VENDOR_DIR /app/vendor
+
 # install protobuf
 CACHED_PROTOBUF_TARBALL="$CACHE_DIR/protobuf.tgz"
 if [ ! -f $CACHED_PROTOBUF_TARBALL ]; then
@@ -53,16 +56,10 @@ fi
 
 tar xzf $CACHED_PROTOBUF_TARBALL -C $VENDOR_DIR
 
-# fix any references to /tmp/protobuf build prefix to point to vendor dir
-# TODO is it OK for this prefix to be relative? seems to work for
-#   node-protobuf's needs. what about python CPP impl? others?
-find $VENDOR_DIR -type f -exec sed -i "s#/tmp/protobuf#$VENDOR_DIR#" {} \;
-
 if [ -f $PROTOS_FILE ]; then
     log-step "downloading protos from $PROTO_BUCKET"
 
     PROTOS_DIR=`mktemp -d`
-    declare -a PROTO_FILES
     tail -n +2 $PROTOS_FILE | while read -r PROTO_FILE
     do
         PROTO_FILES+=("$PROTOS_DIR/$PROTO_FILE")
