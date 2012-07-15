@@ -45,14 +45,14 @@ ln -s $VENDOR_DIR /app/vendor
 
 # install protobuf
 CACHED_PROTOBUF_TARBALL="$CACHE_DIR/protobuf.tgz"
-#if [ ! -f $CACHED_PROTOBUF_TARBALL ]; then
+if [ ! -f $CACHED_PROTOBUF_TARBALL ]; then
     if [ -z "$PROTOBUF_TARBALL_URL" ]; then
         PROTOBUF_TARBALL_URL=https://protobuf.s3.amazonaws.com/protobuf-2.4.1.tgz
     fi
 
     log "downloading protobuf from $PROTOBUF_TARBALL_URL"
     curl $PROTOBUF_TARBALL_URL > $CACHED_PROTOBUF_TARBALL
-#fi
+fi
 
 tar xzf $CACHED_PROTOBUF_TARBALL -C $VENDOR_DIR
 
@@ -60,18 +60,16 @@ if [ -f $PROTOS_FILE ]; then
     log-step "downloading protos from $PROTO_BUCKET"
 
     PROTOS_DIR=`mktemp -d`
-    declare -a PROTO_FILES
-    tail -n +2 $PROTOS_FILE | while read -r PROTO_FILE
+    while read -r PROTO_FILE
     do
-        PROTO_FILES+=("$PROTOS_DIR/$PROTO_FILE")
-        log "downloading $PROTO_FILE"
+        PROTO_FILES+=( "$PROTOS_DIR/$PROTO_FILE" )
         /bin/bash $SUPPORT_DIR/aws/s3 get $PROTO_BUCKET $PROTO_FILE "$PROTOS_DIR/$PROTO_FILE"
-    done
+    done < <(tail -n +2 $PROTOS_FILE)
 
     # get protoc options from first line of .protos
     PROTOC_OPTS=`head -n 1 $PROTOS_FILE`
 
-    log-step "compiling protos with \`protoc $PROTOC_OPTS ${PROTO_FILES[@]}\`"
+    log-step "compiling protos with \`protoc $PROTOC_OPTS\`"
     # run inside BUILD_DIR so output paths can be relative
     ( cd $BUILD_DIR ;
         $VENDOR_DIR/bin/protoc -I $PROTOS_DIR $PROTOC_OPTS ${PROTO_FILES[@]} )
