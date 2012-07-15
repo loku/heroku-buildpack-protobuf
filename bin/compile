@@ -41,6 +41,10 @@ fi
 mkdir -p $VENDOR_DIR
 
 mkdir -p /app
+
+ls -l /app
+ls -l /app/vendor
+
 ln -sTf $VENDOR_DIR /app/vendor
 
 # install protobuf
