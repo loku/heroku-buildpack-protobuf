@@ -6,7 +6,7 @@
 #   even if multi merges, still no PATH merging
 #     default buildpacks clobber PATH, LD_LIBRARY_PATH, etc
 
-echo <<YAML
+cat <<YAML
 ---
 {}
 YAML
