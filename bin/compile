@@ -80,5 +80,6 @@ if [ -f $PROTOS_FILE ]; then
     log-step "compiling protos with \`protoc $PROTOC_OPTS\`"
     # run inside BUILD_DIR so output paths can be relative
     ( cd $BUILD_DIR ;
-        $VENDOR_DIR/bin/protoc -I $PROTOS_DIR $PROTOC_OPTS ${PROTO_FILES[@]} )
+        $VENDOR_DIR/bin/protoc -I $PROTOS_DIR -I $VENDOR_DIR/include \
+            $PROTOC_OPTS ${PROTO_FILES[@]} )
 fi
