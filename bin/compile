@@ -70,6 +70,13 @@ if [ -f $PROTOS_FILE ]; then
     # get protoc options from first line of .protos
     PROTOC_OPTS=`head -n 1 $PROTOS_FILE`
 
+    # ensure output directories for generated code exist
+    OUT_DIR_PATTERN="(?<!descriptor_set)_out=([^[:space:]]+)"
+    for PROTOC_OUT_DIR in $(echo $PROTOC_OPTS | grep -oP $OUT_DIR_PATTERN)
+    do
+        ( cd $BUILD_DIR ; mkdir -p ${PROTOC_OUT_DIR#_out=} )
+    done
+
     log-step "compiling protos with \`protoc $PROTOC_OPTS\`"
     # run inside BUILD_DIR so output paths can be relative
     ( cd $BUILD_DIR ;
