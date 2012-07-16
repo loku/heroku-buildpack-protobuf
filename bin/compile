@@ -46,14 +46,14 @@ ln -sTf $VENDOR_DIR /app/vendor_protobuf
 
 # install protobuf
 CACHED_PROTOBUF_TARBALL="$CACHE_DIR/protobuf.tgz"
-#if [ ! -f $CACHED_PROTOBUF_TARBALL ]; then
+if [ ! -f $CACHED_PROTOBUF_TARBALL ]; then
     if [ -z "$PROTOBUF_TARBALL_URL" ]; then
         PROTOBUF_TARBALL_URL=https://protobuf.s3.amazonaws.com/protobuf-2.4.1.tgz
     fi
 
     log "downloading protobuf from $PROTOBUF_TARBALL_URL"
     curl $PROTOBUF_TARBALL_URL > $CACHED_PROTOBUF_TARBALL
-#fi
+fi
 
 tar xzf $CACHED_PROTOBUF_TARBALL -C $VENDOR_DIR
 
