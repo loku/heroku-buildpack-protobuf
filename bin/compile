@@ -84,4 +84,12 @@ if [ -f $PROTOS_FILE ]; then
     ( cd $BUILD_DIR ;
         $VENDOR_DIR/bin/protoc -I $PROTOS_DIR -I $VENDOR_DIR/include \
             $PROTOC_OPTS ${PROTO_FILES[@]} )
+
+    # create necessary __init__.py files for python
+    PY_OUT_DIR_PATTERN="python_out=([^[:space:]]+)"
+    for PY_OUT_DIR in $(echo $PROTOC_OPTS | grep -oP $PY_OUT_DIR_PATTERN)
+    do
+        ( cd $BUILD_DIR ; find ${PY_OUT_DIR#python_out=}/* -type d \
+            -exec touch {}/__init__.py \; )
+    done
 fi
