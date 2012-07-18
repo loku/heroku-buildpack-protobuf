@@ -64,7 +64,9 @@ if [ -f $PROTOS_FILE ]; then
     while read -r PROTO_FILE
     do
         PROTO_FILES+=( "$PROTOS_DIR/$PROTO_FILE" )
-        /bin/bash $SUPPORT_DIR/aws/s3 get $PROTO_BUCKET $PROTO_FILE "$PROTOS_DIR/$PROTO_FILE"
+        mkdir -p "$PROTOS_DIR/$(dirname $PROTO_FILE)"
+        /bin/bash $SUPPORT_DIR/aws/s3 get $PROTO_BUCKET $PROTO_FILE "$PROTOS_DIR/$PROTO_FILE" \
+            || die "error downloading $PROTO_FILE"
     done < <(tail -n +2 $PROTOS_FILE)
 
     # get protoc options from first line of .protos
