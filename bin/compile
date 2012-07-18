@@ -92,4 +92,6 @@ if [ -f $PROTOS_FILE ]; then
         ( cd $BUILD_DIR ; find ${PY_OUT_DIR#python_out=}/* -type d \
             -exec touch {}/__init__.py \; )
     done
+
+    rm -rf $PROTOS_DIR
 fi
