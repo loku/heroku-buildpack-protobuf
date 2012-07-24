@@ -31,18 +31,18 @@ mkdir -p $CACHE_DIR
 
 if [ "${VENDOR_PROTOBUF+1}" == 1 ]; then
     # install protobuf into slug if VENDOR_PROTOBUF is set
-    VENDOR_DIR=$BUILD_DIR/vendor_protobuf
+    VENDOR_DIR=$BUILD_DIR/.heroku/vendor
     log-step "installing protobuf into slug's /vendor_protobuf"
 else
     # otherwise keep it in the cache dir
-    VENDOR_DIR=$CACHE_DIR/vendor_protobuf
+    VENDOR_DIR=$CACHE_DIR/.heroku/vendor
     log-step "installing protobuf"
 fi
 mkdir -p $VENDOR_DIR
 
-mkdir -p /app
+mkdir -p /app/.heroku
 
-ln -sTf $VENDOR_DIR /app/vendor_protobuf
+ln -sTf $VENDOR_DIR /app/.heroku/vendor
 
 # install protobuf
 CACHED_PROTOBUF_TARBALL="$CACHE_DIR/protobuf.tgz"
