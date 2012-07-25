@@ -40,13 +40,21 @@ If your app needs a Protobuf installation at runtime (e.g. for
 node-protobuf):
 
 ```bash
-# This will install Protobuf with a prefix /app/vendor_protobuf
+# This will install Protobuf with a prefix /app/.heroku/vendor
 $ heroku config:set VENDOR_PROTOBUF=1
 # For node-protobuf you currently also need to set:
-$ heroku config:set LD_LIBRARY_PATH=/app/vendor_protobuf/lib \
-    PKG_CONFIG_PATH=/app/vendor_protobuf/lib/pkgconfig
+$ heroku config:set LD_LIBRARY_PATH=/app/.heroku/vendor/lib \
+    PKG_CONFIG_PATH=/app/.heroku/vendor/lib/pkgconfig
 ```
 
 I am not sure whether `VENDOR_PROTOBUF` will work for anything except
 node-protobuf (e.g. the Python CPP implementation). Java and pure-Python,
 of course, don't need `VENDOR_PROTOBUF`.
+
+## Building protobuf
+
+```bash
+tar xzf protobuf-2.4.1.tar.gz
+cd protobuf-2.4.1
+vulcan build -c 'mkdir -p /app/.heroku/vendor && ./configure --prefix=/app/.heroku/vendor && make && make install' -n protobuf-2.4.1 -p /app/.heroku/vendor
+```
