@@ -46,14 +46,20 @@ ln -sTf $VENDOR_DIR /app/.heroku/vendor
 
 # install protobuf
 CACHED_PROTOBUF_TARBALL="$CACHE_DIR/protobuf.tgz"
-if [ ! -f $CACHED_PROTOBUF_TARBALL ]; then
-    if [ -z "$PROTOBUF_TARBALL_URL" ]; then
-        PROTOBUF_TARBALL_URL=https://protobuf.s3.amazonaws.com/protobuf-2.4.1.tgz
-    fi
-
-    log "downloading protobuf from $PROTOBUF_TARBALL_URL"
-    curl -s $PROTOBUF_TARBALL_URL > $CACHED_PROTOBUF_TARBALL
+if [ -z "$PROTOBUF_TARBALL_URL" ]; then
+    PROTOBUF_TARBALL_URL=https://protobuf.s3.amazonaws.com/protobuf-2.4.1.tgz
 fi
+
+log "downloading protobuf from $PROTOBUF_TARBALL_URL"
+if [ -f $CACHED_PROTOBUF_TARBALL ]; then
+    MD5=($(md5sum $CACHED_PROTOBUF_TARBALL))
+    MD5_HEADER=("-H" "If-None-Match: $MD5")
+else
+    MD5_HEADER=()
+fi
+
+curl -sfSo $CACHED_PROTOBUF_TARBALL \
+    "${MD5_HEADER[@]}" $PROTOBUF_TARBALL_URL
 
 tar xzf $CACHED_PROTOBUF_TARBALL -C $VENDOR_DIR
 

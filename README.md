@@ -51,7 +51,16 @@ I am not sure whether `VENDOR_PROTOBUF` will work for anything except
 node-protobuf (e.g. the Python CPP implementation). Java and pure-Python,
 of course, don't need `VENDOR_PROTOBUF`.
 
-## Building protobuf
+## Building your own protobuf
+
+Protobuf is installed from a tarball downloaded, by default, from
+<https://protobuf.s3.amazonaws.com/protobuf-2.4.1.tgz>. To change this
+URL, set `PROTOBUF_TARBALL_URL`. `If-None-Match: <md5sum>` is relied
+upon to avoid redownloading the tarball on every build (S3 supports
+this. Note that currently the tarball must be publicly available).
+
+`PROTOBUF_TARBALL_URL` should point to a tarball built as follows,
+using [vulcan](https://github.com/heroku/vulcan/):
 
 ```bash
 tar xzf protobuf-2.4.1.tar.gz
