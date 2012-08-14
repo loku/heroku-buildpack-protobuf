@@ -22,11 +22,6 @@ SUPPORT_DIR=$ROOT_DIR/support
 BUILD_DIR=$1
 CACHE_DIR=$2
 
-PROTOS_FILE="$BUILD_DIR/.protos"
-if [ -z "$PROTO_BUCKET" -a -f $PROTOS_FILE ]; then
-    die "must set PROTO_BUCKET from which to download .proto files"
-fi
-
 mkdir -p $CACHE_DIR
 
 if [ "${VENDOR_PROTOBUF+1}" == 1 ]; then
@@ -62,42 +57,3 @@ curl -sfSo $CACHED_PROTOBUF_TARBALL \
     "${MD5_HEADER[@]}" $PROTOBUF_TARBALL_URL
 
 tar xzf $CACHED_PROTOBUF_TARBALL -C $VENDOR_DIR
-
-if [ -f $PROTOS_FILE ]; then
-    log-step "downloading protos from $PROTO_BUCKET"
-
-    PROTOS_DIR=`mktemp -d`
-    while read -r PROTO_FILE
-    do
-        PROTO_FILES+=( "$PROTOS_DIR/$PROTO_FILE" )
-        mkdir -p "$PROTOS_DIR/$(dirname $PROTO_FILE)"
-        /bin/bash $SUPPORT_DIR/aws/s3 get $PROTO_BUCKET $PROTO_FILE "$PROTOS_DIR/$PROTO_FILE" \
-            || die "error downloading $PROTO_FILE"
-    done < <(tail -n +2 $PROTOS_FILE)
-
-    # get protoc options from first line of .protos
-    PROTOC_OPTS=`head -n 1 $PROTOS_FILE`
-
-    # ensure output directories for generated code exist
-    OUT_DIR_PATTERN="(?<!descriptor_set)_out=([^[:space:]]+)"
-    for PROTOC_OUT_DIR in $(echo $PROTOC_OPTS | grep -oP $OUT_DIR_PATTERN)
-    do
-        ( cd $BUILD_DIR ; mkdir -p ${PROTOC_OUT_DIR#_out=} )
-    done
-
-    log-step "compiling protos with \`protoc $PROTOC_OPTS\`"
-    # run inside BUILD_DIR so output paths can be relative
-    ( cd $BUILD_DIR ;
-        $VENDOR_DIR/bin/protoc -I $PROTOS_DIR -I $VENDOR_DIR/include \
-            $PROTOC_OPTS ${PROTO_FILES[@]} )
-
-    # create necessary __init__.py files for python
-    PY_OUT_DIR_PATTERN="python_out=([^[:space:]]+)"
-    for PY_OUT_DIR in $(echo $PROTOC_OPTS | grep -oP $PY_OUT_DIR_PATTERN)
-    do
-        ( cd $BUILD_DIR ; find ${PY_OUT_DIR#python_out=}/* -type d \
-            -exec touch {}/__init__.py \; )
-    done
-
-    rm -rf $PROTOS_DIR
-fi
