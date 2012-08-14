@@ -15,10 +15,6 @@ function die() {
     exit 1
 }
 
-BIN_DIR=$(cd $(dirname $0); pwd)
-ROOT_DIR=$(dirname $BIN_DIR)
-SUPPORT_DIR=$ROOT_DIR/support
-
 BUILD_DIR=$1
 CACHE_DIR=$2
 
